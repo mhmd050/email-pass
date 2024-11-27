@@ -5,7 +5,15 @@
     android:layout_height="match_parent"
     android:background="@color/orange"
     tools:context=".HomeFrag">
-
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:id="@+id/btn_logout"
+        android:layout_gravity="bottom|right"
+        android:layout_marginEnd="20dp"
+        android:src="@drawable/log_out"
+        android:layout_marginBottom="20dp">
+    </com.google.android.material.floatingactionbutton.FloatingActionButton>
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"

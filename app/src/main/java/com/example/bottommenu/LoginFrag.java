@@ -16,6 +16,7 @@ import com.google.android.gms.tasks.Task;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 
 
 public class LoginFrag extends Fragment {
@@ -49,7 +50,7 @@ public class LoginFrag extends Fragment {
         String email , password;
         email=txtUser.getText().toString();
         password=txtPassword.getText().toString();
-        if(!(password.equals("") || email.equals(""))){
+        if(!(password.equals("") || email .equals(""))){
             mAuth.signInWithEmailAndPassword(email,password).addOnCompleteListener(getActivity(), new OnCompleteListener<AuthResult>() {
                 @Override
                 public void onComplete(@NonNull Task<AuthResult> task) {
@@ -73,5 +74,18 @@ public class LoginFrag extends Fragment {
         MainActivity.loginFrame.setVisibility(View.INVISIBLE);
         MainActivity.homeFrame.setVisibility(View.VISIBLE);
         MainActivity.dashFrame.setVisibility(View.INVISIBLE);
+        MainActivity.signUpFrame.setVisibility(View.INVISIBLE);
+        txtUser.setText(null);
+        txtPassword.setText(null);
+        MainActivity.isLogin=true;
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        if(currentUser != null){
+            updateUI();
+        }
     }
 }
