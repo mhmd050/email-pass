@@ -102,14 +102,22 @@ private FirebaseFirestore db;
                 if(check_email()){
                     if(check_password()){
                         if((password.getText().toString()).equals(confirm_password.getText().toString())){
-                            mAuth.createUserWithEmailAndPassword(email.getText().toString(),password.getText().toString());
-                                        Toast.makeText(getActivity(),"sign up successfully",Toast.LENGTH_SHORT).show();
+                            mAuth.createUserWithEmailAndPassword(email.getText().toString(),password.getText().toString()).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
+                                @Override
+                                public void onComplete(@NonNull Task<AuthResult> task) {
+                                    if(task.isSuccessful()){
+                                        Toast.makeText(getActivity(),"sign up succeed",Toast.LENGTH_LONG).show();
                                         addUserToFireStore();
                                         updateUI();
+                                    }
+                                    else{
+                                        Toast.makeText(getActivity(),"sign up failed",Toast.LENGTH_LONG).show();
+                                    }
+                                }
+                            });
                         }
                         else{
                             Toast.makeText(getActivity(),"password is not match",Toast.LENGTH_SHORT).show();
-
                         }
                     }
                 }
@@ -147,14 +155,23 @@ private FirebaseFirestore db;
     }
     private void addUserToFireStore(){
         com.example.bottommenu.User user=new User(name.getText().toString(),user_name.getText().toString(),phone.getText().toString(),email.getText().toString());
-        db.collection("users").document(user.getEmail()).set(user);
-        name.setText(null);
-        phone.setText(null);
-        email.setText(null);
-        password.setText(null);
-        confirm_password.setText(null);
-
-
+        db.collection("users").document(user.getEmail()).set(user).addOnCompleteListener(new OnCompleteListener<Void>() {
+            @Override
+            public void onComplete(@NonNull Task<Void> task) {
+                if(task.isSuccessful()){
+                    Toast.makeText(getActivity(),"user added",Toast.LENGTH_SHORT).show();
+                    updateUI();
+                    name.setText(null);
+                    phone.setText(null);
+                    email.setText(null);
+                    password.setText(null);
+                    confirm_password.setText(null);
+                }
+                else{
+                    Toast.makeText(getActivity(),"adding user failed",Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
     }
     private void updateUI(){
         MainActivity.loginFrame.setVisibility(View.VISIBLE);
@@ -196,6 +213,6 @@ private FirebaseFirestore db;
                 }
             }
         }
-            return false;
+        return false;
     }
 }
