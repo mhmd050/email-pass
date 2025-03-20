@@ -12,23 +12,33 @@
         android:layout_gravity="bottom|right"
         android:layout_marginEnd="20dp"
         android:src="@drawable/log_out"
+        android:contentDescription="Logout button"
         android:layout_marginBottom="20dp">
     </com.google.android.material.floatingactionbutton.FloatingActionButton>
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical">
 
         <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Home Fragment"
-            android:textSize="50sp"
+            android:id="@+id/date"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:textSize="35dp"
             android:textColor="@color/black"
-            android:layout_gravity="center"
-            android:layout_marginTop="50dp"
+            android:text="Date:"
+            android:gravity="center"
             />
-
+        
+        <ListView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:id="@+id/lvSimple"
+            android:dividerHeight="3dp"
+            android:divider="@color/black"
+            />
     </LinearLayout>
+
 
 </FrameLayout>

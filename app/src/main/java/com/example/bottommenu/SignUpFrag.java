@@ -6,6 +6,8 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
+import android.text.InputFilter;
+import android.text.Spanned;
 import android.util.Patterns;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -22,8 +24,8 @@ import com.google.firebase.firestore.FirebaseFirestore;
 
 
 public class SignUpFrag extends Fragment {
-private TextInputEditText user_name,name,phone,email,password,confirm_password;
-private Button sign_up,cancel;
+private TextInputEditText family,name,phone,email,password,confirm_password;
+private Button sign_up;
 private FirebaseAuth mAuth;
 private FirebaseFirestore db;
 
@@ -33,128 +35,92 @@ private FirebaseFirestore db;
 
     @SuppressLint("MissingInflatedId")
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        View view=inflater.inflate(R.layout.fragment_sign_up, container, false);
-        mAuth=FirebaseAuth.getInstance();
-        db=FirebaseFirestore.getInstance();
-        name=view.findViewById(R.id.Name);
-        user_name=view.findViewById(R.id.User_Name);
-        phone=view.findViewById(R.id.phone);
-        sign_up=view.findViewById(R.id.Sign_Up);
-        email=view.findViewById(R.id.Email);
-        password=view.findViewById(R.id.Password);
-        cancel=view.findViewById(R.id.cancel);
-        confirm_password=view.findViewById(R.id.Confirm_Password);
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,Bundle savedInstanceState) {
+        View view = inflater.inflate(R.layout.fragment_sign_up, container, false);
+        mAuth = FirebaseAuth.getInstance();
+        db = FirebaseFirestore.getInstance();
+        name = view.findViewById(R.id.Name);
+        family = view.findViewById(R.id.family);
+        phone = view.findViewById(R.id.phone);
+        sign_up = view.findViewById(R.id.Sign_Up);
+        email = view.findViewById(R.id.Email);
+        password = view.findViewById(R.id.Password);
+        confirm_password = view.findViewById(R.id.Confirm_Password);
         sign_up.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                check();
-            }
-        });
-        cancel.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                MainActivity.loginFrame.setVisibility(View.VISIBLE);
-                MainActivity.homeFrame.setVisibility(View.INVISIBLE);
-                MainActivity.dashFrame.setVisibility(View.INVISIBLE);
-                MainActivity.signUpFrame.setVisibility(View.INVISIBLE);
+                signUp();
             }
         });
         return view;
     }
-    private void check(){
-        if(user_name.getText().toString().isEmpty()){
-            Toast.makeText(getActivity(),"please fill the user name",Toast.LENGTH_SHORT).show();
-        }
-        else{
-            if(name.getText().toString().isEmpty()){
-                Toast.makeText(getActivity(),"please fill the name",Toast.LENGTH_SHORT).show();
-            }
-            else{
-                if(phone.getText().toString().isEmpty()){
-                    Toast.makeText(getActivity(),"please fill the phone number",Toast.LENGTH_SHORT).show();
-                }
-                else{
-                    if(email.getText().toString().isEmpty()){
-                        Toast.makeText(getActivity(),"please fill the email",Toast.LENGTH_SHORT).show();
-                    }
-                    else {
-                        if(password.getText().toString().isEmpty()){
-                            Toast.makeText(getActivity(),"please fill the password",Toast.LENGTH_SHORT).show();
-                        }
-                        else{
-                            if(confirm_password.getText().toString().isEmpty()){
-                                Toast.makeText(getActivity(),"please confirm the password",Toast.LENGTH_SHORT).show();
+    private void signUp(){
+        if(check_name()){
+            if (check_family()) {
+                if(check_phone()){
+                    if(check_email()){
+                        if(check_password()){
+                            if((password.getText().toString()).equals(confirm_password.getText().toString())){
+                                mAuth.createUserWithEmailAndPassword(email.getText().toString(),password.getText().toString()).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
+                                    @Override
+                                    public void onComplete(@NonNull Task<AuthResult> task) {
+                                        if(task.isSuccessful()){
+                                            Toast.makeText(getActivity(),"✅ Account created successfully!",Toast.LENGTH_LONG).show();
+                                            addUserToFireStore();
+                                            updateUI();
+                                        }
+                                        else{
+                                            Toast.makeText(getActivity(),"❌ Registration failed. Please try again.",Toast.LENGTH_LONG).show();
+                                        }
+                                    }
+                                });
                             }
                             else{
-                                signUp();
+                                Toast.makeText(getActivity(),"⚠️ Passwords do not match. Please re-enter.",Toast.LENGTH_SHORT).show();
                             }
                         }
                     }
                 }
             }
         }
-    }
-    private void signUp(){
-        if(name.getText().toString().length()>=4){
-            if(check_phone()){
-                if(check_email()){
-                    if(check_password()){
-                        if((password.getText().toString()).equals(confirm_password.getText().toString())){
-                            mAuth.createUserWithEmailAndPassword(email.getText().toString(),password.getText().toString()).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
-                                @Override
-                                public void onComplete(@NonNull Task<AuthResult> task) {
-                                    if(task.isSuccessful()){
-                                        Toast.makeText(getActivity(),"sign up succeed",Toast.LENGTH_LONG).show();
-                                        addUserToFireStore();
-                                        updateUI();
-                                    }
-                                    else{
-                                        Toast.makeText(getActivity(),"sign up failed",Toast.LENGTH_LONG).show();
-                                    }
-                                }
-                            });
-                        }
-                        else{
-                            Toast.makeText(getActivity(),"password is not match",Toast.LENGTH_SHORT).show();
-                        }
-                    }
-                }
-                else{
-                    Toast.makeText(getActivity(),"invalid email",Toast.LENGTH_SHORT).show();
-                }
-            }
-            else{
-                Toast.makeText(getActivity(),"phone number must be 10 digits",Toast.LENGTH_SHORT).show();
-            }
-        }
-        else{
-            Toast.makeText(getActivity(),"name must be at least 4 digits",Toast.LENGTH_SHORT).show();
-        }
+
     }
     private boolean check_phone() {
-        char[] array = phone.getText().toString().toCharArray();
-        boolean x = true;
-        if(array.length != 10){
+        if (phone.getText().toString().isEmpty()) {
+            Toast.makeText(getActivity(), "⚠️ Please enter your phone number.", Toast.LENGTH_SHORT).show();
             return false;
         }
-        else{
-            for (int i = 0; i < array.length; i++) {
-                if (!Character.isDigit(array[i]) )
-                    x = false;
-            }
+        if (!phone.getText().toString().matches("^\\d{10}$")) {
+            Toast.makeText(getActivity(), "❌ Phone number must be exactly 10 digits.", Toast.LENGTH_SHORT).show();
+            return false;
         }
-        return x;
-    }
-    private boolean check_email(){
-        if(Patterns.EMAIL_ADDRESS.matcher(email.getText().toString()).matches()){
-            return true;
+        if (!phone.getText().toString().startsWith("05")) {
+            Toast.makeText(getActivity(), "❌ Phone number must start with '05'.", Toast.LENGTH_SHORT).show();
+            return false;
         }
-        return false;
+        return true;
     }
+    private boolean check_email() {
+        if (email.getText().toString().isEmpty()) {
+            Toast.makeText(getActivity(), "⚠️ Please enter your email address.", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+        String emailText = email.getText().toString();
+
+        if (emailText.contains(" ")) {
+            Toast.makeText(getActivity(), "❌ Email cannot contain spaces.", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+        if (!android.util.Patterns.EMAIL_ADDRESS.matcher(emailText).matches()) {
+            Toast.makeText(getActivity(), "❌ Invalid email format.", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+
+        return true;
+    }
+
     private void addUserToFireStore(){
-        com.example.bottommenu.User user=new User(name.getText().toString(),user_name.getText().toString(),phone.getText().toString(),email.getText().toString());
+        com.example.bottommenu.User user=new User(name.getText().toString(),family.getText().toString(),phone.getText().toString(),email.getText().toString());
         db.collection("users").document(user.getEmail()).set(user).addOnCompleteListener(new OnCompleteListener<Void>() {
             @Override
             public void onComplete(@NonNull Task<Void> task) {
@@ -162,6 +128,7 @@ private FirebaseFirestore db;
                     Toast.makeText(getActivity(),"user added",Toast.LENGTH_SHORT).show();
                     updateUI();
                     name.setText(null);
+                    family.setText(null);
                     phone.setText(null);
                     email.setText(null);
                     password.setText(null);
@@ -173,46 +140,99 @@ private FirebaseFirestore db;
             }
         });
     }
+
     private void updateUI(){
-        MainActivity.loginFrame.setVisibility(View.VISIBLE);
-        MainActivity.homeFrame.setVisibility(View.INVISIBLE);
-        MainActivity.dashFrame.setVisibility(View.INVISIBLE);
+        MainActivity.loginFrame.setVisibility(View.INVISIBLE);
+        MainActivity.homeFrame.setVisibility(View.VISIBLE);
+        MainActivity.appointmentFrame.setVisibility(View.INVISIBLE);
+        MainActivity.complaintsFrame.setVisibility(View.INVISIBLE);
         MainActivity.signUpFrame.setVisibility(View.INVISIBLE);
+        MainActivity.haircutFrame.setVisibility(View.INVISIBLE);
+        MainActivity.isLogin=true;
     }
-    private boolean check_password(){
-            char [] array=password.getText().toString().toCharArray();
-            boolean capital=false;
-            boolean small=false;
-            boolean number=false;
-        if(password.getText().toString().length() <6) {
-            Toast.makeText(getActivity(), "password must be at least 6 digits", Toast.LENGTH_SHORT).show();
+    private boolean check_password() {
+        if (password.getText().toString().isEmpty()) {
+            Toast.makeText(getActivity(), "⚠️ Please enter your password.", Toast.LENGTH_SHORT).show();
             return false;
         }
-        else{
-            for(int i=0;i<array.length;i++){
-                if(Character.isUpperCase(array[i]))
-                    capital=true;
-                if(Character.isLowerCase(array[i]))
-                    small=true;
-                if(Character.isDigit(array[i]))
-                    number=true;
-            }
-            if(capital && small && number)
-                return true;
+        String passwordText = password.getText().toString();
+
+        if (passwordText.length() < 8) {
+            Toast.makeText(getActivity(), "⚠️ Password must be at least 8 characters long.", Toast.LENGTH_SHORT).show();
+            return false;
         }
-        if(!capital){
-            Toast.makeText(getActivity(),"password must have a capital letter",Toast.LENGTH_SHORT).show();
+        if (passwordText.contains(" ")) {
+            Toast.makeText(getActivity(), "❌ Password cannot contain spaces.", Toast.LENGTH_SHORT).show();
+            return false;
         }
-        else{
-            if(!small){
-                Toast.makeText(getActivity(),"password must have a small letter",Toast.LENGTH_SHORT).show();
-            }
-            else {
-                if(!number){
-                    Toast.makeText(getActivity(),"password must have a number",Toast.LENGTH_SHORT).show();
-                }
-            }
+        if (confirm_password.getText().toString().isEmpty()) {
+            Toast.makeText(getActivity(), "⚠️ Please confirm your password.", Toast.LENGTH_SHORT).show();
+            return false;
         }
-        return false;
+        return true;
     }
+
+
+    private boolean check_name() {
+        if (name.getText().toString().isEmpty()) {
+            Toast.makeText(getActivity(), "⚠️ Please enter your first name.", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+        String trimmedName = name.getText().toString();
+        if (trimmedName.length() < 3) {
+            Toast.makeText(getActivity(), "⚠️ Name must be at least 3 characters long.", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+        if (!trimmedName.matches("^[a-zA-Z]+$")) {
+            Toast.makeText(getActivity(), "❌ Name can only contain letters (no spaces, numbers, or symbols).", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+
+        return true;
+    }
+
+    private boolean check_family() {
+        String familyText = family.getText().toString();
+        if (familyText.isEmpty()) {
+            Toast.makeText(getActivity(), "⚠️ Please enter your family name.", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+        // منع الفراغات في البداية أو النهاية أثناء الكتابة
+        family.setFilters(new InputFilter[]{ new InputFilter() {
+                    @Override
+                    public CharSequence filter(CharSequence source, int start, int end, Spanned dest, int dstart, int dend) {
+                        // منع الفراغات في البداية
+                        if (dstart == 0 && source.length() > 0 && source.charAt(0) == ' ') {
+                            Toast.makeText(getActivity(), "⚠️ Family name cannot start with a space.", Toast.LENGTH_SHORT).show();
+                            return "";
+                        }
+                        // منع الفراغات المتتالية
+                        if (source.toString().matches("\\s{2,}")) {
+                            Toast.makeText(getActivity(), "⚠️ Only one space is allowed between words.", Toast.LENGTH_SHORT).show();
+                            return "";
+                        }
+                        return null; // السماح بالإدخال الصحيح
+                    }
+                }
+        });
+
+        // التحقق من أن الاسم لا يقل عن 3 أحرف
+        if (familyText.length() < 3) {
+            Toast.makeText(getActivity(), "⚠️ Family name must be at least 3 characters long.", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+        // التحقق من أن الاسم لا ينتهي بفراغ
+        if (familyText.endsWith(" ")) {
+            Toast.makeText(getActivity(), "⚠️ Family name cannot end with a space.", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+        // التحقق من أن الاسم يحتوي فقط على أحرف مع السماح بفراغ واحد بين كلمتين
+        if (!familyText.matches("^[a-zA-Z]+(\\s[a-zA-Z]+)?$")) {
+            Toast.makeText(getActivity(), "❌ Family name can only contain letters and a single space between two words.", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+
+        return true; // الاسم صالح
+    }
+
 }

@@ -20,7 +20,7 @@ import com.google.firebase.auth.FirebaseUser;
 
 
 public class LoginFrag extends Fragment {
-    private TextInputEditText txtUser,txtPassword;
+    private TextInputEditText txtEmail,txtPassword;
     private Button btnLogin;
     private FirebaseAuth mAuth;
 
@@ -29,53 +29,49 @@ public class LoginFrag extends Fragment {
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,Bundle savedInstanceState) {
         mAuth=FirebaseAuth.getInstance();
         // Inflate the layout for this fragment
         View view= inflater.inflate(R.layout.fragment_login, container, false);
-        txtUser=view.findViewById(R.id.et_Name);
+        txtEmail=view.findViewById(R.id.et_Name);
         txtPassword=view.findViewById(R.id.et_Pass);
         btnLogin=view.findViewById(R.id.btn_login);
         btnLogin.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
                 checkEmailPass();
             }
         });
         return view;
     }
-    private void checkEmailPass (){
-        String email , password;
-        email=txtUser.getText().toString();
-        password=txtPassword.getText().toString();
-        if(!(password.equals("") || email .equals(""))){
-            mAuth.signInWithEmailAndPassword(email,password).addOnCompleteListener(getActivity(), new OnCompleteListener<AuthResult>() {
+    private void checkEmailPass () {
+        String email, password;
+        email = txtEmail.getText().toString();
+        password = txtPassword.getText().toString();
+        if (!(password.equals("") || email.equals(""))) {
+            mAuth.signInWithEmailAndPassword(email, password).addOnCompleteListener(getActivity(), new OnCompleteListener<AuthResult>() {
                 @Override
                 public void onComplete(@NonNull Task<AuthResult> task) {
-                    if(task.isSuccessful()){
-                        Toast.makeText(getActivity(),"login successfully",Toast.LENGTH_SHORT).show();
+                    if (task.isSuccessful()) {
+                        Toast.makeText(getActivity(), "✅ Login successful!", Toast.LENGTH_SHORT).show();
                         updateUI();
-                    }
-                    else {
-                        Toast.makeText(getActivity(),"login failed",Toast.LENGTH_SHORT).show();
-
+                    } else {
+                        Toast.makeText(getActivity(), "❌ Login failed. Please check your credentials.", Toast.LENGTH_SHORT).show();
                     }
                 }
             });
-        }
-        else {
-            Toast.makeText(getActivity(),"please fill in fields",Toast.LENGTH_SHORT).show();
-
+        } else {
+            Toast.makeText(getActivity(), "⚠️ Please fill in all required fields.", Toast.LENGTH_SHORT).show();
         }
     }
-    private void updateUI(){
+        private void updateUI(){
         MainActivity.loginFrame.setVisibility(View.INVISIBLE);
         MainActivity.homeFrame.setVisibility(View.VISIBLE);
-        MainActivity.dashFrame.setVisibility(View.INVISIBLE);
+        MainActivity.appointmentFrame.setVisibility(View.INVISIBLE);
+        MainActivity.complaintsFrame.setVisibility(View.INVISIBLE);
         MainActivity.signUpFrame.setVisibility(View.INVISIBLE);
-        txtUser.setText(null);
+        MainActivity.haircutFrame.setVisibility(View.INVISIBLE);
+        txtEmail.setText(null);
         txtPassword.setText(null);
         MainActivity.isLogin=true;
     }

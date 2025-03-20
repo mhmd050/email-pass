@@ -1,20 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:title="logIn"
+        android:id="@+id/menu_logIn"
+        android:icon="@drawable/baseline_login_24" />
+
+    <item
+        android:title="signUp"
+        android:id="@+id/menu_signUp"
+        android:icon="@drawable/baseline_person_add_24" />
+
 <item
     android:title="Home"
     android:id="@+id/menu_home"
     android:icon="@drawable/home" />
-    <item
-        android:title="Dashboard"
-        android:id="@+id/menu_dashboard"
-        android:icon="@drawable/baseline_dashboard_24" />
-    <item
-        android:title="LogIn"
-        android:id="@+id/menu_login"
-        android:icon="@drawable/baseline_login_24" />
-    <item
-        android:title="SignUp"
-        android:id="@+id/menu_signup"
-        android:icon="@drawable/baseline_account_box_24" />
 
+    <item
+        android:title="appointment"
+        android:id="@+id/menu_appointment"
+        android:icon="@drawable/baseline_access_time_24" />
+
+    <item
+        android:title="complaints"
+        android:id="@+id/menu_complaints"
+        android:icon="@drawable/baseline_add_comment_24" />
 </menu>

@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/light_blue"
+    tools:context=".appointment">
+
+        <TextView
+            android:layout_width="300dp"
+            android:layout_height="50dp"
+            android:text="Book an appointment"
+            android:textSize="30sp"
+            android:textColor="@color/black"
+            android:gravity="center"
+            android:layout_marginLeft="50dp"
+            android:layout_marginTop="10dp"
+            android:layout_marginBottom="10dp"
+            />
+
+    <RadioGroup
+        android:layout_width="match_parent"
+        android:orientation="vertical"
+        android:layout_height="590dp"
+        android:id="@+id/radioGroup"
+        android:layout_marginTop="60dp">
+
+        <RadioButton
+            android:id="@+id/radioButton12"
+            android:layout_width="200dp"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:textSize="30dp"
+            android:text="12:00-12:30" />
+
+        <RadioButton
+            android:id="@+id/radioButton12_30"
+            android:layout_width="200dp"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:textSize="30dp"
+            android:text="12:30-13:00" />
+
+        <RadioButton
+            android:id="@+id/radioButton13"
+            android:layout_width="200dp"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:textSize="30dp"
+            android:text="13:00-13:30" />
+
+        <RadioButton
+            android:id="@+id/radioButton13_30"
+            android:layout_width="200dp"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:textSize="30dp"
+            android:text="13:30-14:00" />
+
+        <RadioButton
+            android:id="@+id/radioButton14"
+            android:layout_width="200dp"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:textSize="30dp"
+            android:text="14:00-14:30" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:text="- - - - - - - - - - - - - - - - - - - - - - -"
+            android:textSize="35sp"
+            android:textColor="@color/black"
+            android:layout_gravity="center"
+            android:gravity="center"
+            />
+
+        <RadioButton
+            android:id="@+id/radioButton15_30"
+            android:layout_width="200dp"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:textSize="30dp"
+            android:text="15:30-16:00" />
+
+        <RadioButton
+            android:id="@+id/radioButton16"
+            android:layout_width="200dp"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:textSize="30dp"
+            android:text="16:00-16:30" />
+
+        <RadioButton
+            android:id="@+id/radioButton16_30"
+            android:layout_width="200dp"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:textSize="30dp"
+            android:text="16:30-17:00" />
+
+        <RadioButton
+            android:id="@+id/radioButton17"
+            android:layout_width="200dp"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:textSize="30dp"
+            android:text="17:00-17:30" />
+
+        <RadioButton
+            android:id="@+id/radioButton17_30"
+            android:layout_width="200dp"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:textSize="30dp"
+            android:text="17:30-18:00" />
+
+
+    </RadioGroup>
+
+        <Button
+            android:id="@+id/next"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="35sp"
+            android:backgroundTint="@color/purple_500"
+            android:textColor="@android:color/white"
+            android:layout_gravity="center"
+            android:layout_marginTop="325dp"
+            android:text="next" />
+
+</FrameLayout>
