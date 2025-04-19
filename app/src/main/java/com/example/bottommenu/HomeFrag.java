@@ -52,6 +52,7 @@ public class HomeFrag extends Fragment implements Service_Adapter.ItemSelected{
         MainActivity.complaintsFrame.setVisibility(View.INVISIBLE);
         MainActivity.signUpFrame.setVisibility(View.INVISIBLE);
         MainActivity.haircutFrame.setVisibility(View.INVISIBLE);
+        MainActivity.managerFrame.setVisibility(View.INVISIBLE);
         MainActivity.isLogin=false;
     }
 

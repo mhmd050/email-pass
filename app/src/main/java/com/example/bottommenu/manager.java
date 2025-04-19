@@ -1,0 +1,94 @@
+package com.example.bottommenu;
+
+import android.os.Bundle;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ListView;
+import android.widget.Toast;
+
+import androidx.fragment.app.Fragment;
+
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+
+import java.util.ArrayList;
+
+public class manager extends Fragment {
+
+    private FloatingActionButton btnLogout;
+    private ListView appointmentsList, complaintsList;
+    private ArrayList<String> appointmentsArray, complaintsArray;
+    private FirebaseFirestore db;
+
+    public manager() {}
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        View view = inflater.inflate(R.layout.fragment_manager, container, false);
+
+        btnLogout = view.findViewById(R.id.btn_logout);
+        appointmentsList = view.findViewById(R.id.appointments_list);
+        complaintsList = view.findViewById(R.id.complains_list);
+        db = FirebaseFirestore.getInstance();
+
+        appointmentsArray = new ArrayList<>();
+        complaintsArray = new ArrayList<>();
+
+        AppointmentAdapter appointmentsAdapter = new AppointmentAdapter(getContext(), appointmentsArray);
+        ComplaintAdapter complaintsAdapter = new ComplaintAdapter(getContext(), complaintsArray);
+
+        appointmentsList.setAdapter(appointmentsAdapter);
+        complaintsList.setAdapter(complaintsAdapter);
+
+        loadAppointments(appointmentsAdapter);
+        loadComplaints(complaintsAdapter);
+
+        btnLogout.setOnClickListener(view1 -> {
+            MainActivity.loginFrame.setVisibility(View.VISIBLE);
+            MainActivity.homeFrame.setVisibility(View.INVISIBLE);
+            MainActivity.appointmentFrame.setVisibility(View.INVISIBLE);
+            MainActivity.complaintsFrame.setVisibility(View.INVISIBLE);
+            MainActivity.signUpFrame.setVisibility(View.INVISIBLE);
+            MainActivity.haircutFrame.setVisibility(View.INVISIBLE);
+            MainActivity.managerFrame.setVisibility(View.INVISIBLE);
+            MainActivity.isLogin = false;
+            MainActivity.isManager = false;
+        });
+
+        return view;
+    }
+
+    private void loadAppointments(AppointmentAdapter adapter) {
+        db.collection("appointments").get().addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                appointmentsArray.clear();
+                for (QueryDocumentSnapshot doc : task.getResult()) {
+                    String name = doc.getString("firstName");
+                    String familyName = doc.getString("familyName");
+                    String time = doc.getString("time");
+                    appointmentsArray.add(name + " " + familyName + " - " + time);
+                }
+                adapter.notifyDataSetChanged();
+            } else {
+                Toast.makeText(getContext(), "Failed to load appointments", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void loadComplaints(ComplaintAdapter adapter) {
+        db.collection("complaints").get().addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                complaintsArray.clear();
+                for (QueryDocumentSnapshot doc : task.getResult()) {
+                    String text = doc.getString("text");
+                    complaintsArray.add(text);
+                }
+                adapter.notifyDataSetChanged();
+            } else {
+                Toast.makeText(getContext(), "Failed to load complaints", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+}

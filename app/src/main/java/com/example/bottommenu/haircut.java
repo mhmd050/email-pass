@@ -7,58 +7,72 @@ import androidx.fragment.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.Toast;
 
-/**
- * A simple {@link Fragment} subclass.
- * Use the {@link haircut#newInstance} factory method to
- * create an instance of this fragment.
- */
+import com.google.firebase.firestore.FirebaseFirestore;
+
 public class haircut extends Fragment {
-
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
-
-    // TODO: Rename and change types of parameters
-    private String mParam1;
-    private String mParam2;
 
     public haircut() {
         // Required empty public constructor
     }
 
-    /**
-     * Use this factory method to create a new instance of
-     * this fragment using the provided parameters.
-     *
-     * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
-     * @return A new instance of fragment haircut.
-     */
-    // TODO: Rename and change types and number of parameters
-    public static haircut newInstance(String param1, String param2) {
-        haircut fragment = new haircut();
-        Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
-        fragment.setArguments(args);
-        return fragment;
-    }
-
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
-        }
-    }
+    private ImageView[] haircutImages;
+    private Button sendButton;
+    private FirebaseFirestore db;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_haircut, container, false);
+        View view = inflater.inflate(R.layout.fragment_haircut, container, false);
+        db = FirebaseFirestore.getInstance();
+        sendButton = view.findViewById(R.id.button_send);
+
+        haircutImages = new ImageView[]{
+                view.findViewById(R.id.imageView1),
+                view.findViewById(R.id.imageView2),
+                view.findViewById(R.id.imageView3),
+                view.findViewById(R.id.imageView4),
+                view.findViewById(R.id.imageView5),
+                view.findViewById(R.id.imageView6),
+                view.findViewById(R.id.imageView7),
+                view.findViewById(R.id.imageView8),
+                view.findViewById(R.id.imageView9),
+                view.findViewById(R.id.imageView10),
+                view.findViewById(R.id.imageView11),
+                view.findViewById(R.id.imageView12),
+                view.findViewById(R.id.imageView13),
+                view.findViewById(R.id.imageView14),
+                view.findViewById(R.id.imageView15),
+                view.findViewById(R.id.imageView16),
+                view.findViewById(R.id.imageView17),
+                view.findViewById(R.id.imageView18)
+        };
+
+        sendButton.setOnClickListener(v -> {
+            String selectedTime = "10:00 AM"; // Example selected time
+            String fullName = "John Doe"; // Example name
+
+            for (ImageView image : haircutImages) {
+                if (image.isPressed()) {
+                    int styleImgId = image.getId();
+                    Service service = new Service(fullName, selectedTime, styleImgId);
+                    db.collection("appintment").add(service)
+                            .addOnSuccessListener(documentReference -> {
+                                Toast.makeText(getContext(), "Appointment booked successfully!", Toast.LENGTH_SHORT).show();
+                            })
+                            .addOnFailureListener(e -> {
+                                Toast.makeText(getContext(), "Failed to book appointment", Toast.LENGTH_SHORT).show();
+                            });
+                    return;
+                }
+            }
+
+            Toast.makeText(getContext(), "Please select a haircut style first.", Toast.LENGTH_SHORT).show();
+        });
+
+        return view;
     }
 }

@@ -24,10 +24,10 @@ import com.google.firebase.firestore.FirebaseFirestore;
 
 
 public class SignUpFrag extends Fragment {
-private TextInputEditText family,name,phone,email,password,confirm_password;
-private Button sign_up;
-private FirebaseAuth mAuth;
-private FirebaseFirestore db;
+    private TextInputEditText family,name,phone,email,password,confirm_password;
+    private Button sign_up;
+    private FirebaseAuth mAuth;
+    private FirebaseFirestore db;
 
     public SignUpFrag() {
         // Required empty public constructor
@@ -148,6 +148,7 @@ private FirebaseFirestore db;
         MainActivity.complaintsFrame.setVisibility(View.INVISIBLE);
         MainActivity.signUpFrame.setVisibility(View.INVISIBLE);
         MainActivity.haircutFrame.setVisibility(View.INVISIBLE);
+        MainActivity.managerFrame.setVisibility(View.INVISIBLE);
         MainActivity.isLogin=true;
     }
     private boolean check_password() {
@@ -199,21 +200,21 @@ private FirebaseFirestore db;
         }
         // منع الفراغات في البداية أو النهاية أثناء الكتابة
         family.setFilters(new InputFilter[]{ new InputFilter() {
-                    @Override
-                    public CharSequence filter(CharSequence source, int start, int end, Spanned dest, int dstart, int dend) {
-                        // منع الفراغات في البداية
-                        if (dstart == 0 && source.length() > 0 && source.charAt(0) == ' ') {
-                            Toast.makeText(getActivity(), "⚠️ Family name cannot start with a space.", Toast.LENGTH_SHORT).show();
-                            return "";
-                        }
-                        // منع الفراغات المتتالية
-                        if (source.toString().matches("\\s{2,}")) {
-                            Toast.makeText(getActivity(), "⚠️ Only one space is allowed between words.", Toast.LENGTH_SHORT).show();
-                            return "";
-                        }
-                        return null; // السماح بالإدخال الصحيح
-                    }
+            @Override
+            public CharSequence filter(CharSequence source, int start, int end, Spanned dest, int dstart, int dend) {
+                // منع الفراغات في البداية
+                if (dstart == 0 && source.length() > 0 && source.charAt(0) == ' ') {
+                    Toast.makeText(getActivity(), "⚠️ Family name cannot start with a space.", Toast.LENGTH_SHORT).show();
+                    return "";
                 }
+                // منع الفراغات المتتالية
+                if (source.toString().matches("\\s{2,}")) {
+                    Toast.makeText(getActivity(), "⚠️ Only one space is allowed between words.", Toast.LENGTH_SHORT).show();
+                    return "";
+                }
+                return null; // السماح بالإدخال الصحيح
+            }
+        }
         });
 
         // التحقق من أن الاسم لا يقل عن 3 أحرف

@@ -16,6 +16,11 @@
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:id="@+id/managerFrame"/>
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
         android:id="@+id/appointment_frame"
         android:layout_above="@+id/bottom_navigation"/>
 

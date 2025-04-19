@@ -1,17 +1,27 @@
 package com.example.bottommenu;
 
+import android.graphics.Color;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
-import androidx.core.content.ContextCompat;
+import android.widget.Toast;
+
 import androidx.fragment.app.Fragment;
+
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
+
+import java.util.HashMap;
 
 public class appointment extends Fragment {
 
     private RadioGroup radioGroup;
+    private Button next;
     private RadioButton selectedButton = null;
 
     public appointment() {
@@ -19,46 +29,104 @@ public class appointment extends Fragment {
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        // استبدل R.layout.fragment_appointment باسم ملف XML الخاص بك
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_appointment, container, false);
 
-        // ربط RadioGroup باستخدام المعرف الموجود في XML
         radioGroup = view.findViewById(R.id.radioGroup);
+        next = view.findViewById(R.id.next);
+        next.setEnabled(false);
 
-        // المرور على جميع الأطفال داخل RadioGroup وتعيين OnClickListener للـ RadioButton فقط
+        // Load booked appointments from Firestore
+        FirebaseFirestore.getInstance().collection("appointments").get()
+                .addOnSuccessListener(querySnapshot -> {
+                    for (DocumentSnapshot doc : querySnapshot.getDocuments()) {
+                        String bookedTime = doc.getString("time");
+                        int count = radioGroup.getChildCount();
+                        for (int i = 0; i < count; i++) {
+                            View child = radioGroup.getChildAt(i);
+                            if (child instanceof RadioButton) {
+                                RadioButton radioButton = (RadioButton) child;
+                                if (radioButton.getText().toString().equals(bookedTime)) {
+                                    radioButton.setBackgroundColor(Color.parseColor("#FF7F7F")); // light red
+                                    radioButton.setEnabled(false);
+                                }
+                            }
+                        }
+                    }
+                });
+
         int count = radioGroup.getChildCount();
         for (int i = 0; i < count; i++) {
             View child = radioGroup.getChildAt(i);
             if (child instanceof RadioButton) {
                 RadioButton radioButton = (RadioButton) child;
-                radioButton.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        changeButtonColor((RadioButton) v);
-                    }
-                });
+                radioButton.setOnClickListener(v -> changeButtonColor(radioButton));
             }
         }
+
+        next.setOnClickListener(view1 -> {
+            if (selectedButton != null) {
+                String email = FirebaseAuth.getInstance().getCurrentUser().getEmail();
+                if (email != null) {
+                    FirebaseFirestore.getInstance().collection("users").document(email)
+                            .get().addOnSuccessListener(documentSnapshot -> {
+                                if (documentSnapshot.exists()) {
+                                    String firstName = documentSnapshot.getString("firstName");
+                                    String familyName = documentSnapshot.getString("familyName");
+
+                                    if (firstName != null && familyName != null) {
+                                        HashMap<String, Object> appointment = new HashMap<>();
+                                        appointment.put("firstName", firstName);
+                                        appointment.put("familyName", familyName);
+                                        appointment.put("time", selectedButton.getText().toString());
+
+                                        FirebaseFirestore.getInstance().collection("appointments")
+                                                .add(appointment)
+                                                .addOnSuccessListener(doc -> {
+                                                    Toast.makeText(getContext(), "Appointment confirmed for: " + selectedButton.getText(), Toast.LENGTH_SHORT).show();
+                                                    goToHaircutPage();
+                                                })
+                                                .addOnFailureListener(e -> {
+                                                    Toast.makeText(getContext(), "Failed to save appointment", Toast.LENGTH_SHORT).show();
+                                                });
+                                    } else {
+                                        Toast.makeText(getContext(), "Name data is missing", Toast.LENGTH_SHORT).show();
+                                    }
+                                } else {
+                                    Toast.makeText(getContext(), "User not found", Toast.LENGTH_SHORT).show();
+                                }
+                            });
+                } else {
+                    Toast.makeText(getContext(), "User not logged in", Toast.LENGTH_SHORT).show();
+                }
+            } else {
+                Toast.makeText(getContext(), "You have to choose an appointment", Toast.LENGTH_SHORT).show();
+            }
+        });
 
         return view;
     }
 
-    // دالة لتغيير لون الزر عند الضغط
     private void changeButtonColor(RadioButton clickedButton) {
-        // اللون الافتراضي: #A1E3F9
-        int defaultColor = android.graphics.Color.parseColor("#A1E3F9");
-        // اللون المحدد: holo_green_light (يمكنك تغييره حسب رغبتك)
-        int selectedColor = ContextCompat.getColor(getContext(), android.R.color.holo_green_light);
+        int defaultColor = Color.parseColor("#A1E3F9");
+        int selectedColor = getContext().getResources().getColor(android.R.color.holo_green_light);
 
-        // إعادة لون الزر السابق إلى اللون الافتراضي إذا كان موجودًا
         if (selectedButton != null) {
             selectedButton.setBackgroundColor(defaultColor);
         }
-        // تغيير لون الزر الذي تم الضغط عليه إلى اللون المحدد (الأخضر)
+
         clickedButton.setBackgroundColor(selectedColor);
-        // تحديث المتغير لتخزين الزر المحدد الحالي
         selectedButton = clickedButton;
+        next.setEnabled(true);
+    }
+
+    private void goToHaircutPage() {
+        MainActivity.homeFrame.setVisibility(View.INVISIBLE);
+        MainActivity.appointmentFrame.setVisibility(View.INVISIBLE);
+        MainActivity.haircutFrame.setVisibility(View.VISIBLE);
+        MainActivity.complaintsFrame.setVisibility(View.INVISIBLE);
+        MainActivity.loginFrame.setVisibility(View.INVISIBLE);
+        MainActivity.signUpFrame.setVisibility(View.INVISIBLE);
+        MainActivity.managerFrame.setVisibility(View.INVISIBLE);
     }
 }

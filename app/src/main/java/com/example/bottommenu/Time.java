@@ -1,20 +1,19 @@
 package com.example.bottommenu;
 
-public class User {
+public class Time {
+
     private String firstName;
     private String familyName;
-    private String phone;
-    private String email;
+    private String time;
 
-    public User() {
+    public Time() {
         // Required empty constructor for Firestore
     }
 
-    public User(String firstName, String familyName, String phone, String email) {
+    public Time(String firstName, String familyName, String time) {
         this.firstName = firstName;
         this.familyName = familyName;
-        this.phone = phone;
-        this.email = email;
+        this.time = time;
     }
 
     public String getFirstName() {
@@ -25,11 +24,7 @@ public class User {
         return familyName;
     }
 
-    public String getPhone() {
-        return phone;
-    }
-
-    public String getEmail() {
-        return email;
+    public String getTime() {
+        return time;
     }
 }

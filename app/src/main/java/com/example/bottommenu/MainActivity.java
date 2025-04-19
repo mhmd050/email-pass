@@ -13,16 +13,16 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationBarView;
 
 public class MainActivity extends AppCompatActivity {
-    public static boolean isLogin = false;
-    public static FrameLayout homeFrame,loginFrame,signUpFrame,haircutFrame,appointmentFrame,complaintsFrame;
+    public static boolean isLogin = false,isManager = false;
+    public static FrameLayout homeFrame,loginFrame,signUpFrame,haircutFrame,appointmentFrame,complaintsFrame,managerFrame;
     private HomeFrag homeFrag;
+    private manager managerFrag;
     private haircut haircutFrag;
     private appointment appointmentFrag;
     private LoginFrag loginFrag;
     private SignUpFrag signUpFrag;
     private complaints complaintsFrag;
     private BottomNavigationView bottomNavigationView;
-    @SuppressLint("MissingInflatedId")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -33,6 +33,7 @@ public class MainActivity extends AppCompatActivity {
         haircutFrame=findViewById(R.id.haircut_frame);
         appointmentFrame=findViewById(R.id.appointment_frame);
         complaintsFrame=findViewById(R.id.complaints_frame);
+        managerFrame=findViewById(R.id.managerFrame);
         bottomNavigationView=findViewById(R.id.bottom_navigation);
         begin();
     }
@@ -41,9 +42,11 @@ public class MainActivity extends AppCompatActivity {
         loginFrag=new LoginFrag();
         signUpFrag=new SignUpFrag();
         haircutFrag=new haircut();
+        managerFrag=new manager();
         appointmentFrag=new appointment();
         complaintsFrag=new complaints();
         getSupportFragmentManager().beginTransaction().replace(R.id.home_frame,homeFrag).commit();
+        getSupportFragmentManager().beginTransaction().replace(R.id.managerFrame,managerFrag).commit();
         getSupportFragmentManager().beginTransaction().replace(R.id.log_In_frame,loginFrag).commit();
         getSupportFragmentManager().beginTransaction().replace(R.id.Sign_Up_frame,signUpFrag).commit();
         getSupportFragmentManager().beginTransaction().replace(R.id.haircut_frame,haircutFrag).commit();
@@ -57,50 +60,54 @@ public class MainActivity extends AppCompatActivity {
         signUpFrame.setVisibility(View.INVISIBLE);
         appointmentFrame.setVisibility(View.INVISIBLE);
         complaintsFrame.setVisibility(View.INVISIBLE);
-
-
+        managerFrame.setVisibility(View.INVISIBLE);
         bottomNavigationView.setOnItemSelectedListener(new NavigationBarView.OnItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-                if(item.getItemId()==R.id.menu_home&&isLogin){
+                if(item.getItemId()==R.id.menu_home&&isLogin&&!isManager){
                     homeFrame.setVisibility(View.VISIBLE);
                     appointmentFrame.setVisibility(View.INVISIBLE);
                     haircutFrame.setVisibility(View.INVISIBLE);
                     complaintsFrame.setVisibility(View.INVISIBLE);
                     loginFrame.setVisibility(View.INVISIBLE);
                     signUpFrame.setVisibility(View.INVISIBLE);
+                    managerFrame.setVisibility(View.INVISIBLE);
                 }
-                if(item.getItemId()==R.id.menu_appointment&&isLogin){
+                if(item.getItemId()==R.id.menu_appointment&&isLogin&&!isManager){
                     homeFrame.setVisibility(View.INVISIBLE);
                     appointmentFrame.setVisibility(View.VISIBLE);
                     haircutFrame.setVisibility(View.INVISIBLE);
                     complaintsFrame.setVisibility(View.INVISIBLE);
                     loginFrame.setVisibility(View.INVISIBLE);
                     signUpFrame.setVisibility(View.INVISIBLE);
+                    managerFrame.setVisibility(View.INVISIBLE);
                 }
-                if(item.getItemId()==R.id.menu_complaints&&isLogin){
+                if(item.getItemId()==R.id.menu_complaints&&isLogin&&!isManager){
                     homeFrame.setVisibility(View.INVISIBLE);
                     appointmentFrame.setVisibility(View.INVISIBLE);
                     haircutFrame.setVisibility(View.INVISIBLE);
                     complaintsFrame.setVisibility(View.VISIBLE);
                     loginFrame.setVisibility(View.INVISIBLE);
                     signUpFrame.setVisibility(View.INVISIBLE);
+                    managerFrame.setVisibility(View.INVISIBLE);
                 }
-                if(item.getItemId()==R.id.menu_logIn&&!isLogin){
+                if(item.getItemId()==R.id.menu_logIn&&!isLogin&&!isManager){
                     homeFrame.setVisibility(View.INVISIBLE);
                     appointmentFrame.setVisibility(View.INVISIBLE);
                     haircutFrame.setVisibility(View.INVISIBLE);
                     complaintsFrame.setVisibility(View.INVISIBLE);
                     loginFrame.setVisibility(View.VISIBLE);
                     signUpFrame.setVisibility(View.INVISIBLE);
+                    managerFrame.setVisibility(View.INVISIBLE);
                 }
-                if(item.getItemId()==R.id.menu_signUp&&!isLogin){
+                if(item.getItemId()==R.id.menu_signUp&&!isLogin&&!isManager){
                     homeFrame.setVisibility(View.INVISIBLE);
                     appointmentFrame.setVisibility(View.INVISIBLE);
                     haircutFrame.setVisibility(View.INVISIBLE);
                     complaintsFrame.setVisibility(View.INVISIBLE);
                     loginFrame.setVisibility(View.INVISIBLE);
                     signUpFrame.setVisibility(View.VISIBLE);
+                    managerFrame.setVisibility(View.INVISIBLE);
                 }
                 return true;
             }
