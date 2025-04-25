@@ -147,9 +147,11 @@ public class SignUpFrag extends Fragment {
         MainActivity.appointmentFrame.setVisibility(View.INVISIBLE);
         MainActivity.complaintsFrame.setVisibility(View.INVISIBLE);
         MainActivity.signUpFrame.setVisibility(View.INVISIBLE);
-        MainActivity.haircutFrame.setVisibility(View.INVISIBLE);
         MainActivity.managerFrame.setVisibility(View.INVISIBLE);
+        MainActivity.hairCutFram.setVisibility(View.INVISIBLE);
         MainActivity.isLogin=true;
+        MainActivity.isAppointment = false;
+        MainActivity.isHaircut=true;
     }
     private boolean check_password() {
         if (password.getText().toString().isEmpty()) {

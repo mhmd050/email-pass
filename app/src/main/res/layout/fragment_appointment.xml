@@ -139,7 +139,7 @@
     </RadioGroup>
 
         <Button
-            android:id="@+id/next"
+            android:id="@+id/send"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textSize="35sp"
@@ -147,6 +147,6 @@
             android:textColor="@android:color/white"
             android:layout_gravity="center"
             android:layout_marginTop="325dp"
-            android:text="next" />
+            android:text="send" />
 
 </FrameLayout>

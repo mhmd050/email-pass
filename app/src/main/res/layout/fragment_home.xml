@@ -26,18 +26,31 @@
             android:layout_width="match_parent"
             android:layout_height="50dp"
             android:textSize="35dp"
+            android:background="@color/light_blue"
             android:textColor="@color/black"
             android:text="Date:"
             android:gravity="center"
             />
-        
-        <ListView
+        <TextView
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:id="@+id/lvSimple"
-            android:dividerHeight="3dp"
-            android:divider="@color/black"
+            android:layout_height="50dp"
+            android:textSize="35dp"
+            android:textColor="@color/black"
+            android:text="Your appointment:"
+            android:gravity="center"
+            android:layout_marginTop="250dp"
             />
+        <TextView
+            android:id="@+id/time"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:textSize="35dp"
+            android:textColor="@color/black"
+            android:text="----------------"
+            android:gravity="center"
+            android:layout_marginTop="10dp"
+            />
+
     </LinearLayout>
 
 

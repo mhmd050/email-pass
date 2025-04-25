@@ -51,8 +51,8 @@ public class manager extends Fragment {
             MainActivity.appointmentFrame.setVisibility(View.INVISIBLE);
             MainActivity.complaintsFrame.setVisibility(View.INVISIBLE);
             MainActivity.signUpFrame.setVisibility(View.INVISIBLE);
-            MainActivity.haircutFrame.setVisibility(View.INVISIBLE);
             MainActivity.managerFrame.setVisibility(View.INVISIBLE);
+            MainActivity.hairCutFram.setVisibility(View.INVISIBLE);
             MainActivity.isLogin = false;
             MainActivity.isManager = false;
         });

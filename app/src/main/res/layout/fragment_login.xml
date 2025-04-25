@@ -6,6 +6,15 @@
     android:background="@drawable/download"
     tools:context=".LoginFrag">
 
+    <!-- Background ImageView for animation -->
+    <ImageView
+        android:id="@+id/bg_image"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="centerCrop"
+        android:src="@drawable/download" />
+
+    <!-- Foreground UI -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -19,8 +28,8 @@
             android:background="@color/red2"
             android:textColor="@color/black"
             android:layout_gravity="center"
-            android:layout_marginTop="50dp"
-            />
+            android:layout_marginTop="50dp" />
+
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="370dp"
             android:layout_height="wrap_content"
@@ -34,7 +43,7 @@
                 android:id="@+id/et_Name"
                 android:hint="Email"
                 android:textSize="20sp"
-                android:layout_margin="10dp"/>
+                android:layout_margin="10dp" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <com.google.android.material.textfield.TextInputLayout
@@ -51,8 +60,9 @@
                 android:inputType="textPassword"
                 android:hint="Password"
                 android:textSize="20sp"
-                android:layout_margin="10dp"/>
+                android:layout_margin="10dp" />
         </com.google.android.material.textfield.TextInputLayout>
+
         <Button
             android:id="@+id/btn_login"
             android:layout_width="wrap_content"
@@ -61,9 +71,6 @@
             android:textColor="@color/black"
             android:layout_marginTop="70dp"
             android:layout_gravity="center"
-            android:text="Confirm"
-            />
+            android:text="Confirm" />
     </LinearLayout>
-
-
 </FrameLayout>
