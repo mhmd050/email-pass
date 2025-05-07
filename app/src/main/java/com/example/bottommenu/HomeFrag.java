@@ -7,7 +7,9 @@ import androidx.fragment.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.auth.FirebaseAuth;
@@ -23,29 +25,31 @@ public class HomeFrag extends Fragment {
     private FloatingActionButton btnLogout;
     private TextView date;
     public static TextView time;
+    private Button deleteButton;
     private FirebaseAuth mAuth;
     private FirebaseAuth.AuthStateListener authListener;
+    public static String documentIdToDelete = null;
 
     public HomeFrag() {}
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_home, container, false);
+
         date = view.findViewById(R.id.date);
         time = view.findViewById(R.id.time);
+        deleteButton = view.findViewById(R.id.delete);
+        btnLogout = view.findViewById(R.id.btn_logout);
 
         // عرض التاريخ الحالي
         Calendar calendar = Calendar.getInstance();
         String currentDate = DateFormat.getDateInstance(DateFormat.FULL).format(calendar.getTime());
         date.setText(currentDate);
 
-        btnLogout = view.findViewById(R.id.btn_logout);
         btnLogout.setOnClickListener(v -> LogOut());
 
-        // تهيئة FirebaseAuth
         mAuth = FirebaseAuth.getInstance();
 
-        // الاستماع لتغيّر حالة المستخدم
         authListener = firebaseAuth -> {
             FirebaseUser user = firebaseAuth.getCurrentUser();
             if (user != null) {
@@ -54,6 +58,28 @@ public class HomeFrag extends Fragment {
                 time.setText("Not logged in");
             }
         };
+
+        // زر حذف الموعد
+        deleteButton.setOnClickListener(v -> {
+            if (documentIdToDelete != null) {
+                FirebaseFirestore.getInstance()
+                        .collection("appointments")
+                        .document(documentIdToDelete)
+                        .delete()
+                        .addOnSuccessListener(unused -> {
+                            time.setText("----------------");
+                            documentIdToDelete = null;
+                            MainActivity.bottomNavigationView.getMenu().findItem(R.id.menu_appointment).setEnabled(true);
+
+                            Toast.makeText(getContext(), "تم حذف الموعد", Toast.LENGTH_SHORT).show();
+                        })
+                        .addOnFailureListener(e -> {
+                            Toast.makeText(getContext(), "فشل الحذف", Toast.LENGTH_SHORT).show();
+                        });
+            } else {
+                Toast.makeText(getContext(), "لا يوجد موعد لحذفه", Toast.LENGTH_SHORT).show();
+            }
+        });
 
         return view;
     }
@@ -87,13 +113,19 @@ public class HomeFrag extends Fragment {
                             String appointmentTime = doc.getString("time");
                             if (appointmentTime != null) {
                                 time.setText(appointmentTime);
+                                documentIdToDelete = doc.getId();
                                 return;
                             }
                         }
+                    } else {
+                        time.setText("No appointment yet");
+                        documentIdToDelete = null;
                     }
-                    time.setText("No appointment yet");
                 })
-                .addOnFailureListener(e -> time.setText("Failed to load appointment"));
+                .addOnFailureListener(e -> {
+                    time.setText("Failed to load appointment");
+                    documentIdToDelete = null;
+                });
     }
 
     private void LogOut() {
@@ -105,6 +137,12 @@ public class HomeFrag extends Fragment {
         MainActivity.signUpFrame.setVisibility(View.INVISIBLE);
         MainActivity.managerFrame.setVisibility(View.INVISIBLE);
         MainActivity.hairCutFram.setVisibility(View.INVISIBLE);
-        MainActivity.isLogin = false;
+        LoginFrag.x=true;
+        MainActivity.bottomNavigationView.setSelectedItemId(R.id.menu_logIn);
+        MainActivity.bottomNavigationView.getMenu().findItem(R.id.menu_signUp).setEnabled(true);
+        MainActivity.bottomNavigationView.getMenu().findItem(R.id.menu_logIn).setEnabled(true);
+        MainActivity.bottomNavigationView.getMenu().findItem(R.id.menu_home).setEnabled(false);
+        MainActivity.bottomNavigationView.getMenu().findItem(R.id.menu_complaints).setEnabled(false);
+        MainActivity.bottomNavigationView.getMenu().findItem(R.id.menu_appointment).setEnabled(false);
     }
 }

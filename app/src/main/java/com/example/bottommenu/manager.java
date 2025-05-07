@@ -21,6 +21,8 @@ public class manager extends Fragment {
     private ListView appointmentsList, complaintsList;
     private ArrayList<String> appointmentsArray, complaintsArray;
     private FirebaseFirestore db;
+    private AppointmentAdapter appointmentsAdapter;
+    private ComplaintAdapter complaintsAdapter;
 
     public manager() {}
 
@@ -36,14 +38,14 @@ public class manager extends Fragment {
         appointmentsArray = new ArrayList<>();
         complaintsArray = new ArrayList<>();
 
-        AppointmentAdapter appointmentsAdapter = new AppointmentAdapter(getContext(), appointmentsArray);
-        ComplaintAdapter complaintsAdapter = new ComplaintAdapter(getContext(), complaintsArray);
+        appointmentsAdapter = new AppointmentAdapter(getContext(), appointmentsArray);
+        complaintsAdapter = new ComplaintAdapter(getContext(), complaintsArray);
 
         appointmentsList.setAdapter(appointmentsAdapter);
         complaintsList.setAdapter(complaintsAdapter);
 
-        loadAppointments(appointmentsAdapter);
-        loadComplaints(complaintsAdapter);
+        // تحميل البيانات عند الإنشاء
+        reloadAppointmentsAndComplaints();
 
         btnLogout.setOnClickListener(view1 -> {
             MainActivity.loginFrame.setVisibility(View.VISIBLE);
@@ -53,14 +55,24 @@ public class manager extends Fragment {
             MainActivity.signUpFrame.setVisibility(View.INVISIBLE);
             MainActivity.managerFrame.setVisibility(View.INVISIBLE);
             MainActivity.hairCutFram.setVisibility(View.INVISIBLE);
-            MainActivity.isLogin = false;
-            MainActivity.isManager = false;
+
+            MainActivity.bottomNavigationView.setSelectedItemId(R.id.menu_logIn);
+            MainActivity.bottomNavigationView.getMenu().findItem(R.id.menu_signUp).setEnabled(true);
+            MainActivity.bottomNavigationView.getMenu().findItem(R.id.menu_logIn).setEnabled(true);
+            MainActivity.bottomNavigationView.getMenu().findItem(R.id.menu_home).setEnabled(false);
+            MainActivity.bottomNavigationView.getMenu().findItem(R.id.menu_complaints).setEnabled(false);
+            MainActivity.bottomNavigationView.getMenu().findItem(R.id.menu_appointment).setEnabled(false);
         });
 
         return view;
     }
 
-    private void loadAppointments(AppointmentAdapter adapter) {
+    public void reloadAppointmentsAndComplaints() {
+        loadAppointments();
+        loadComplaints();
+    }
+
+    private void loadAppointments() {
         db.collection("appointments").get().addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
                 appointmentsArray.clear();
@@ -68,26 +80,30 @@ public class manager extends Fragment {
                     String name = doc.getString("firstName");
                     String familyName = doc.getString("familyName");
                     String time = doc.getString("time");
-                    appointmentsArray.add(name + " " + familyName + " - " + time);
+                    if (name != null && familyName != null && time != null) {
+                        appointmentsArray.add(name + " " + familyName + " - " + time);
+                    }
                 }
-                adapter.notifyDataSetChanged();
+                appointmentsAdapter.notifyDataSetChanged();
             } else {
-                Toast.makeText(getContext(), "Failed to load appointments", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), "❌ Failed to load appointments", Toast.LENGTH_SHORT).show();
             }
         });
     }
 
-    private void loadComplaints(ComplaintAdapter adapter) {
+    private void loadComplaints() {
         db.collection("complaints").get().addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
                 complaintsArray.clear();
                 for (QueryDocumentSnapshot doc : task.getResult()) {
                     String text = doc.getString("text");
-                    complaintsArray.add(text);
+                    if (text != null) {
+                        complaintsArray.add(text);
+                    }
                 }
-                adapter.notifyDataSetChanged();
+                complaintsAdapter.notifyDataSetChanged();
             } else {
-                Toast.makeText(getContext(), "Failed to load complaints", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), "❌ Failed to load complaints", Toast.LENGTH_SHORT).show();
             }
         });
     }

@@ -15,6 +15,7 @@ import android.widget.Toast;
 import androidx.fragment.app.Fragment;
 
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
@@ -25,13 +26,12 @@ public class appointment extends Fragment {
     private RadioGroup radioGroup;
     private Button send;
     private RadioButton selectedButton = null;
-
-    // Variable to hold the URL of the selected haircut image
     private String selectedImageUrl = null;
+    private String email;
 
-    public appointment() {
-        // Required empty public constructor
-    }
+    private String firstName, familyName;
+
+    public appointment() {}
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -41,33 +41,19 @@ public class appointment extends Fragment {
         send = view.findViewById(R.id.send);
         send.setEnabled(false);
 
-        // Load booked appointments from Firestore
-        FirebaseFirestore.getInstance().collection("appointments").get()
-                .addOnSuccessListener(querySnapshot -> {
-                    for (DocumentSnapshot doc : querySnapshot.getDocuments()) {
-                        String bookedTime = doc.getString("time");
-                        int count = radioGroup.getChildCount();
-                        for (int i = 0; i < count; i++) {
-                            View child = radioGroup.getChildAt(i);
-                            if (child instanceof RadioButton) {
-                                RadioButton radioButton = (RadioButton) child;
-                                if (radioButton.getText().toString().equals(bookedTime)) {
-                                    radioButton.setBackgroundColor(Color.parseColor("#FF7F7F")); // light red
-                                    radioButton.setEnabled(false);
-                                }
-                            }
-                        }
-                    }
-                });
-
-        int count = radioGroup.getChildCount();
-        for (int i = 0; i < count; i++) {
-            View child = radioGroup.getChildAt(i);
-            if (child instanceof RadioButton) {
-                RadioButton radioButton = (RadioButton) child;
-                radioButton.setOnClickListener(v -> changeButtonColor(radioButton));
-            }
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser == null) {
+            Toast.makeText(getContext(), "⚠️ Please login first", Toast.LENGTH_SHORT).show();
+            return view;
         }
+
+        email = currentUser.getEmail();
+
+        view.post(() -> {
+            loadAppointmentsFromFirebase();
+            loadUserInfoFromFirebase();
+            setupRadioButtons();
+        });
 
         send.setOnClickListener(view1 -> {
             if (selectedButton != null) {
@@ -77,65 +63,93 @@ public class appointment extends Fragment {
                 SpannableString message = new SpannableString("Are you sure you want to save this appointment?");
                 message.setSpan(new RelativeSizeSpan(1.3f), 0, message.length(), 0);
 
-                androidx.appcompat.app.AlertDialog dialog = new androidx.appcompat.app.AlertDialog.Builder(getContext())
+                new androidx.appcompat.app.AlertDialog.Builder(getContext())
                         .setTitle(title)
                         .setMessage(message)
                         .setPositiveButton("Yes", (dialogInterface, which) -> {
-                            String email = FirebaseAuth.getInstance().getCurrentUser().getEmail();
-                            if (email != null) {
-                                FirebaseFirestore.getInstance().collection("users").document(email)
-                                        .get().addOnSuccessListener(documentSnapshot -> {
-                                            if (documentSnapshot.exists()) {
-                                                String firstName = documentSnapshot.getString("firstName");
-                                                String familyName = documentSnapshot.getString("familyName");
+                            if (firstName != null && familyName != null) {
+                                HashMap<String, Object> appointment = new HashMap<>();
+                                appointment.put("firstName", firstName);
+                                appointment.put("familyName", familyName);
+                                appointment.put("time", selectedButton.getText().toString());
+                                appointment.put("email", email);
+                                appointment.put("style_img", selectedImageUrl);
 
-                                                // Assuming you've stored the selected image URL in 'selectedImageUrl'
-                                                if (firstName != null && familyName != null) {
-                                                    HashMap<String, Object> appointment = new HashMap<>();
-                                                    appointment.put("firstName", firstName);
-                                                    appointment.put("familyName", familyName);
-                                                    appointment.put("time", selectedButton.getText().toString());
-                                                    appointment.put("email", email);
-                                                    appointment.put("style_img", selectedImageUrl);  // Add the selected image URL here
+                                FirebaseFirestore.getInstance().collection("appointments")
+                                        .add(appointment)
+                                        .addOnSuccessListener(docRef -> {
+                                            HomeFrag.time.setText(selectedButton.getText().toString());
+                                            HomeFrag.documentIdToDelete = docRef.getId();
 
-                                                    FirebaseFirestore.getInstance().collection("appointments")
-                                                            .add(appointment)
-                                                            .addOnSuccessListener(doc -> {
-                                                                Toast.makeText(getContext(), "Appointment confirmed for: " + selectedButton.getText(), Toast.LENGTH_SHORT).show();
-                                                                goToHairCutPage();
-                                                                MainActivity.isAppointment = true;
-                                                                MainActivity.isHaircut = false;
-                                                                HomeFrag.time.setText(selectedButton.getText().toString());
-                                                            })
-                                                            .addOnFailureListener(e -> {
-                                                                Toast.makeText(getContext(), "Failed to save appointment", Toast.LENGTH_SHORT).show();
-                                                            });
-                                                } else {
-                                                    Toast.makeText(getContext(), "Name data is missing", Toast.LENGTH_SHORT).show();
-                                                }
-                                            } else {
-                                                Toast.makeText(getContext(), "User not found", Toast.LENGTH_SHORT).show();
-                                            }
-                                        });
+                                            // ✅ نمرر المرجع مباشرة لـ HairCut
+                                            HairCut.latestAppointmentRef = docRef;
+
+                                            Toast.makeText(getContext(), "Appointment confirmed for: " + selectedButton.getText(), Toast.LENGTH_SHORT).show();
+                                            disableAllBottomItems();
+                                            goToHairCutPage();
+                                        })
+                                        .addOnFailureListener(e ->
+                                                Toast.makeText(getContext(), "Failed to save appointment", Toast.LENGTH_SHORT).show());
                             } else {
-                                Toast.makeText(getContext(), "User not logged in", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(getContext(), "⚠️ User data not loaded. Try again.", Toast.LENGTH_SHORT).show();
                             }
                         })
                         .setNegativeButton("No", null)
-                        .create();
-
-                dialog.setOnShowListener(dlg -> {
-                    dialog.getButton(androidx.appcompat.app.AlertDialog.BUTTON_POSITIVE).setTextSize(18); // Yes
-                    dialog.getButton(androidx.appcompat.app.AlertDialog.BUTTON_NEGATIVE).setTextSize(18); // No
-                });
-
-                dialog.show();
+                        .show();
             } else {
                 Toast.makeText(getContext(), "You have to choose an appointment", Toast.LENGTH_SHORT).show();
             }
         });
 
         return view;
+    }
+
+    public void reloadAppointments() {
+        loadAppointmentsFromFirebase();
+        loadUserInfoFromFirebase();
+    }
+
+    private void loadAppointmentsFromFirebase() {
+        for (int i = 0; i < radioGroup.getChildCount(); i++) {
+            View child = radioGroup.getChildAt(i);
+            if (child instanceof RadioButton) {
+                RadioButton radioButton = (RadioButton) child;
+                radioButton.setEnabled(true);
+                radioButton.setBackgroundColor(Color.parseColor("#A1E3F9"));
+            }
+        }
+
+        FirebaseFirestore.getInstance().collection("appointments")
+                .get()
+                .addOnSuccessListener(querySnapshot -> {
+                    for (DocumentSnapshot doc : querySnapshot.getDocuments()) {
+                        String bookedTime = doc.getString("time");
+                        if (bookedTime == null) continue;
+
+                        for (int i = 0; i < radioGroup.getChildCount(); i++) {
+                            View child = radioGroup.getChildAt(i);
+                            if (child instanceof RadioButton) {
+                                RadioButton radioButton = (RadioButton) child;
+                                String radioText = radioButton.getText().toString().trim();
+                                if (bookedTime.trim().equalsIgnoreCase(radioText)) {
+                                    radioButton.setBackgroundColor(Color.parseColor("#FF7F7F"));
+                                    radioButton.setEnabled(false);
+                                }
+                            }
+                        }
+                    }
+                });
+    }
+
+    private void setupRadioButtons() {
+        int count = radioGroup.getChildCount();
+        for (int i = 0; i < count; i++) {
+            View child = radioGroup.getChildAt(i);
+            if (child instanceof RadioButton) {
+                RadioButton radioButton = (RadioButton) child;
+                radioButton.setOnClickListener(v -> changeButtonColor(radioButton));
+            }
+        }
     }
 
     private void changeButtonColor(RadioButton clickedButton) {
@@ -159,17 +173,30 @@ public class appointment extends Fragment {
         MainActivity.signUpFrame.setVisibility(View.INVISIBLE);
         MainActivity.managerFrame.setVisibility(View.INVISIBLE);
         MainActivity.hairCutFram.setVisibility(View.VISIBLE);
-        MainActivity.isAppointment = true;
+        disableAllBottomItems();
     }
 
-    // Method to handle image selection (from gallery or camera)
-    public void selectImage() {
-        // Implement the logic to pick the image (either from the gallery or camera)
-        // After selecting the image, set the selected URL into the 'selectedImageUrl' variable
-        // For example, you can upload the image to Firebase Storage and get the URL back
-        // This is an example, and you'll need to implement image picking logic yourself
+    private void disableAllBottomItems() {
+        if (MainActivity.bottomNavigationView != null) {
+            MainActivity.bottomNavigationView.getMenu().findItem(R.id.menu_signUp).setEnabled(false);
+            MainActivity.bottomNavigationView.getMenu().findItem(R.id.menu_logIn).setEnabled(false);
+            MainActivity.bottomNavigationView.getMenu().findItem(R.id.menu_home).setEnabled(false);
+            MainActivity.bottomNavigationView.getMenu().findItem(R.id.menu_complaints).setEnabled(false);
+            MainActivity.bottomNavigationView.getMenu().findItem(R.id.menu_appointment).setEnabled(false);
+        }
+    }
 
-        // Example:
-        // selectedImageUrl = "URL_OF_THE_SELECTED_IMAGE";
+    private void loadUserInfoFromFirebase() {
+        FirebaseFirestore.getInstance().collection("users").document(email)
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        firstName = documentSnapshot.getString("firstName");
+                        familyName = documentSnapshot.getString("familyName");
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(getContext(), "❌ Failed to load user info", Toast.LENGTH_SHORT).show();
+                });
     }
 }

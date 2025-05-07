@@ -23,10 +23,10 @@ public class LoginFrag extends Fragment {
     private TextInputEditText txtEmail, txtPassword;
     private Button btnLogin;
     private FirebaseAuth mAuth;
-    private boolean x = true;
+    public static boolean x = true;
+    private ImageView scissorsImage;
 
-    public LoginFrag() {
-    }
+    public LoginFrag() {}
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -37,24 +37,42 @@ public class LoginFrag extends Fragment {
         ImageView bgImage = view.findViewById(R.id.bg_image);
         Animation animation = AnimationUtils.loadAnimation(getContext(), R.anim.move_background);
         bgImage.startAnimation(animation);
+        scissorsImage = view.findViewById(R.id.scissorsImage);
+        scissorsImage.setVisibility(View.GONE);
 
         // Initialize UI
         txtEmail = view.findViewById(R.id.et_Name);
         txtPassword = view.findViewById(R.id.et_Pass);
         btnLogin = view.findViewById(R.id.btn_login);
-        btnLogin.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                checkManager();
-            }
+
+        btnLogin.setOnClickListener(v -> {
+            scissorsImage.setVisibility(View.VISIBLE);
+            scissorsImage.setScaleX(0.5f);
+            scissorsImage.setScaleY(0.5f);
+            scissorsImage.setRotation(0f);
+            scissorsImage.setTranslationY(0f);
+
+            scissorsImage.animate()
+                    .scaleX(1.5f)
+                    .scaleY(1.5f)
+                    .rotationBy(360f)
+                    .translationY(1200f)
+                    .setDuration(2000)
+                    .setInterpolator(new android.view.animation.BounceInterpolator())
+                    .start();
+
+            scissorsImage.postDelayed(this::checkManager, 2000);
         });
+
         return view;
     }
 
     private void checkManager() {
         String email = txtEmail.getText().toString();
         String password = txtPassword.getText().toString();
-        if (password.equals("00000000") && email.equals("manager@gmail.com")) {
+
+        if (email.equals("manager@gmail.com") && password.equals("00000000")) {
+            // إظهار واجهة المدير
             MainActivity.loginFrame.setVisibility(View.INVISIBLE);
             MainActivity.homeFrame.setVisibility(View.INVISIBLE);
             MainActivity.appointmentFrame.setVisibility(View.INVISIBLE);
@@ -62,10 +80,22 @@ public class LoginFrag extends Fragment {
             MainActivity.signUpFrame.setVisibility(View.INVISIBLE);
             MainActivity.managerFrame.setVisibility(View.VISIBLE);
             MainActivity.hairCutFram.setVisibility(View.INVISIBLE);
-            MainActivity.isManager = true;
+
+            // تحديث الـ Bottom Navigation
+            MainActivity.bottomNavigationView.setSelectedItemId(R.id.menu_home);
+            MainActivity.bottomNavigationView.getMenu().findItem(R.id.menu_signUp).setEnabled(false);
+            MainActivity.bottomNavigationView.getMenu().findItem(R.id.menu_logIn).setEnabled(false);
+            MainActivity.bottomNavigationView.getMenu().findItem(R.id.menu_home).setEnabled(false);
+            MainActivity.bottomNavigationView.getMenu().findItem(R.id.menu_complaints).setEnabled(false);
+            MainActivity.bottomNavigationView.getMenu().findItem(R.id.menu_appointment).setEnabled(false);
+
+            // تحميل بيانات المدير
+            if (MainActivity.managerFrag != null) {
+                MainActivity.managerFrag.reloadAppointmentsAndComplaints();
+            }
+
             txtEmail.setText(null);
             txtPassword.setText(null);
-            MainActivity.isLogin = true;
         } else {
             checkEmailPass();
         }
@@ -74,17 +104,20 @@ public class LoginFrag extends Fragment {
     private void checkEmailPass() {
         String email = txtEmail.getText().toString();
         String password = txtPassword.getText().toString();
-        if (!(password.equals("") || email.equals(""))) {
+        if (!(email.isEmpty() || password.isEmpty())) {
             mAuth.signInWithEmailAndPassword(email, password)
-                    .addOnCompleteListener(getActivity(), new OnCompleteListener<AuthResult>() {
-                        @Override
-                        public void onComplete(@NonNull Task<AuthResult> task) {
-                            if (task.isSuccessful()) {
-                                Toast.makeText(getActivity(), "✅ Login successful!", Toast.LENGTH_SHORT).show();
-                                checkIfUserHasAppointment();
-                            } else {
-                                Toast.makeText(getActivity(), "❌ Login failed. Please check your credentials.", Toast.LENGTH_SHORT).show();
-                            }
+                    .addOnCompleteListener(getActivity(), task -> {
+                        if (task.isSuccessful()) {
+                            Toast.makeText(getActivity(), "✅ Login successful!", Toast.LENGTH_SHORT).show();
+                            MainActivity.bottomNavigationView.setSelectedItemId(R.id.menu_home);
+                            MainActivity.bottomNavigationView.getMenu().findItem(R.id.menu_signUp).setEnabled(false);
+                            MainActivity.bottomNavigationView.getMenu().findItem(R.id.menu_logIn).setEnabled(false);
+                            MainActivity.bottomNavigationView.getMenu().findItem(R.id.menu_home).setEnabled(true);
+                            MainActivity.bottomNavigationView.getMenu().findItem(R.id.menu_complaints).setEnabled(true);
+                            MainActivity.bottomNavigationView.getMenu().findItem(R.id.menu_appointment).setEnabled(true);
+                            checkIfUserHasAppointment();
+                        } else {
+                            Toast.makeText(getActivity(), "❌ Login failed. Please check your credentials.", Toast.LENGTH_SHORT).show();
                         }
                     });
         } else {
@@ -94,7 +127,6 @@ public class LoginFrag extends Fragment {
 
     private void checkIfUserHasAppointment() {
         FirebaseUser currentUser = mAuth.getCurrentUser();
-        MainActivity.isAppointment = false;
         if (currentUser != null) {
             String email = currentUser.getEmail();
             FirebaseFirestore.getInstance().collection("appointments")
@@ -102,17 +134,14 @@ public class LoginFrag extends Fragment {
                     .get()
                     .addOnSuccessListener(querySnapshot -> {
                         if (!querySnapshot.isEmpty()) {
-                            MainActivity.isAppointment = true;
-
                             String time = querySnapshot.getDocuments().get(0).getString("time");
                             if (time != null) {
                                 HomeFrag.time.setText(time);
+                                MainActivity.bottomNavigationView.getMenu().findItem(R.id.menu_appointment).setEnabled(false);
                             }
 
-                            // التحقق من وجود صورة قصة شعر
                             String styleImg = querySnapshot.getDocuments().get(0).getString("style_img");
                             if (!(styleImg != null && !styleImg.isEmpty())) {
-                                MainActivity.isHaircut=false;
                                 MainActivity.loginFrame.setVisibility(View.INVISIBLE);
                                 MainActivity.homeFrame.setVisibility(View.INVISIBLE);
                                 MainActivity.appointmentFrame.setVisibility(View.INVISIBLE);
@@ -120,12 +149,16 @@ public class LoginFrag extends Fragment {
                                 MainActivity.signUpFrame.setVisibility(View.INVISIBLE);
                                 MainActivity.managerFrame.setVisibility(View.INVISIBLE);
                                 MainActivity.hairCutFram.setVisibility(View.VISIBLE);
-                                x=false;
+                                MainActivity.bottomNavigationView.setSelectedItemId(R.id.menu_appointment);
+                                MainActivity.bottomNavigationView.getMenu().findItem(R.id.menu_signUp).setEnabled(false);
+                                MainActivity.bottomNavigationView.getMenu().findItem(R.id.menu_logIn).setEnabled(false);
+                                MainActivity.bottomNavigationView.getMenu().findItem(R.id.menu_home).setEnabled(false);
+                                MainActivity.bottomNavigationView.getMenu().findItem(R.id.menu_complaints).setEnabled(false);
+                                MainActivity.bottomNavigationView.getMenu().findItem(R.id.menu_appointment).setEnabled(false);
+                                x = false;
                             }
                         }
-                        if (x) {
-                            updateUI();
-                        }
+                        if (x) updateUI();
                     })
                     .addOnFailureListener(e -> {
                         Toast.makeText(getContext(), "Failed to check appointment", Toast.LENGTH_SHORT).show();
@@ -144,7 +177,6 @@ public class LoginFrag extends Fragment {
         MainActivity.hairCutFram.setVisibility(View.INVISIBLE);
         txtEmail.setText(null);
         txtPassword.setText(null);
-        MainActivity.isLogin = true;
     }
 
     @Override
@@ -152,7 +184,13 @@ public class LoginFrag extends Fragment {
         super.onStart();
         FirebaseUser currentUser = mAuth.getCurrentUser();
         if (currentUser != null) {
-            checkIfUserHasAppointment(); // Check appointment on start too
+            MainActivity.bottomNavigationView.setSelectedItemId(R.id.menu_home);
+            MainActivity.bottomNavigationView.getMenu().findItem(R.id.menu_signUp).setEnabled(false);
+            MainActivity.bottomNavigationView.getMenu().findItem(R.id.menu_logIn).setEnabled(false);
+            MainActivity.bottomNavigationView.getMenu().findItem(R.id.menu_home).setEnabled(true);
+            MainActivity.bottomNavigationView.getMenu().findItem(R.id.menu_complaints).setEnabled(true);
+            MainActivity.bottomNavigationView.getMenu().findItem(R.id.menu_appointment).setEnabled(true);
+            checkIfUserHasAppointment();
         }
     }
 }

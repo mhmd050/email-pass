@@ -14,7 +14,7 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.DocumentReference;
 
 public class HairCut extends Fragment {
 
@@ -30,6 +30,9 @@ public class HairCut extends Fragment {
             "haircut_13", "haircut_14", "haircut_15", "haircut_16", "haircut_17", "haircut_18"
     };
 
+    // ✅ نستخدمها لتخزين مرجع الموعد القادم
+    public static DocumentReference latestAppointmentRef = null;
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -38,7 +41,13 @@ public class HairCut extends Fragment {
         for (int i = 0; i < imageIds.length; i++) {
             int index = i;
             ImageView imageView = view.findViewById(imageIds[i]);
-            imageView.setOnClickListener(v -> showConfirmationDialog(imageNames[index]));
+            imageView.setOnClickListener(v -> {
+                if (latestAppointmentRef != null) {
+                    showConfirmationDialog(imageNames[index]);
+                } else {
+                    Toast.makeText(getContext(), "⚠️ Please wait, appointment is still being processed.", Toast.LENGTH_SHORT).show();
+                }
+            });
         }
 
         return view;
@@ -53,11 +62,9 @@ public class HairCut extends Fragment {
                 .create();
 
         dialog.setOnShowListener(d -> {
-            // تكبير الأزرار
             dialog.getButton(AlertDialog.BUTTON_POSITIVE).setTextSize(18);
             dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setTextSize(18);
 
-            // تكبير نص الرسالة
             TextView messageView = dialog.findViewById(android.R.id.message);
             if (messageView != null) {
                 messageView.setTextSize(20);
@@ -68,39 +75,32 @@ public class HairCut extends Fragment {
     }
 
     private void saveHaircutToFirestore(String imageName) {
-        String email = FirebaseAuth.getInstance().getCurrentUser().getEmail();
-        if (email == null) {
-            Toast.makeText(getContext(), "User not logged in", Toast.LENGTH_SHORT).show();
+        if (latestAppointmentRef == null) {
+            Toast.makeText(getContext(), "⚠️ Appointment reference is missing", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        String time = HomeFrag.time.getText().toString();
+        latestAppointmentRef.update("style_img", imageName)
+                .addOnSuccessListener(unused -> {
+                    Toast.makeText(getContext(), "Haircut saved", Toast.LENGTH_SHORT).show();
 
-        FirebaseFirestore.getInstance().collection("appointments")
-                .whereEqualTo("email", email)
-                .whereEqualTo("time", time)
-                .get()
-                .addOnSuccessListener(querySnapshot -> {
-                    if (!querySnapshot.isEmpty()) {
-                        querySnapshot.getDocuments().get(0).getReference()
-                                .update("style_img", imageName)
-                                .addOnSuccessListener(unused -> {
-                                    Toast.makeText(getContext(), "Haircut saved", Toast.LENGTH_SHORT).show();
-                                    MainActivity.isHaircut=false;
-                                    // إظهار home وإخفاء باقي الفريمات
-                                    MainActivity.loginFrame.setVisibility(View.INVISIBLE);
-                                    MainActivity.homeFrame.setVisibility(View.VISIBLE);
-                                    MainActivity.appointmentFrame.setVisibility(View.INVISIBLE);
-                                    MainActivity.complaintsFrame.setVisibility(View.INVISIBLE);
-                                    MainActivity.signUpFrame.setVisibility(View.INVISIBLE);
-                                    MainActivity.managerFrame.setVisibility(View.INVISIBLE);
-                                    MainActivity.hairCutFram.setVisibility(View.INVISIBLE);
-                                })
-                                .addOnFailureListener(e ->
-                                        Toast.makeText(getContext(), "Failed to save", Toast.LENGTH_SHORT).show());
-                    } else {
-                        Toast.makeText(getContext(), "No matching appointment found", Toast.LENGTH_SHORT).show();
-                    }
-                });
+                    // الانتقال للصفحة الرئيسية
+                    MainActivity.loginFrame.setVisibility(View.INVISIBLE);
+                    MainActivity.homeFrame.setVisibility(View.VISIBLE);
+                    MainActivity.appointmentFrame.setVisibility(View.INVISIBLE);
+                    MainActivity.complaintsFrame.setVisibility(View.INVISIBLE);
+                    MainActivity.signUpFrame.setVisibility(View.INVISIBLE);
+                    MainActivity.managerFrame.setVisibility(View.INVISIBLE);
+                    MainActivity.hairCutFram.setVisibility(View.INVISIBLE);
+
+                    MainActivity.bottomNavigationView.setSelectedItemId(R.id.menu_home);
+                    MainActivity.bottomNavigationView.getMenu().findItem(R.id.menu_signUp).setEnabled(false);
+                    MainActivity.bottomNavigationView.getMenu().findItem(R.id.menu_logIn).setEnabled(false);
+                    MainActivity.bottomNavigationView.getMenu().findItem(R.id.menu_home).setEnabled(true);
+                    MainActivity.bottomNavigationView.getMenu().findItem(R.id.menu_complaints).setEnabled(true);
+                    MainActivity.bottomNavigationView.getMenu().findItem(R.id.menu_appointment).setEnabled(false);
+                })
+                .addOnFailureListener(e ->
+                        Toast.makeText(getContext(), "❌ Failed to save haircut", Toast.LENGTH_SHORT).show());
     }
 }
